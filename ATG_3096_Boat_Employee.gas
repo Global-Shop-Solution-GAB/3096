@@ -1,0 +1,43 @@
+Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Coded by: SUPERVSR
+'Project Start Date: 4/14/2011
+F.ODBC.Connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+F.Intrinsic.Control.CallSub(Bdfload)
+
+
+Program.Sub.Main.End
+
+Program.Sub.BDFLoad.Start
+V.Local.sReadRow.Declare(String)
+V.Local.sSQL.Declare(String)
+V.Local.iRowCnt.Declare(Long)
+V.Local.i.Declare(Long)
+V.Local.sTemp.Declare(String)
+
+F.Intrinsic.BDF.Load("AUX001","AUX001")
+F.Intrinsic.BDF.Clone("AUX001","Clone")
+F.Intrinsic.BDF.ReadRowCount("AUX001",V.Local.iRowCnt)
+F.Intrinsic.Math.Sub(V.Local.iRowCnt,1,V.Local.iRowCnt)
+F.Intrinsic.Control.For(V.Local.i,0,V.Local.iRowCnt,1)
+	F.Intrinsic.BDF.ReadRow("AUX001",V.Local.i,V.Local.sReadRow)
+	F.Intrinsic.String.Split(V.Local.sReadRow,"|~|",V.Local.sTemp)
+	F.Intrinsic.String.Concat("Select Employee From EMPLOYEE_MSTR Where DEPT_EMPLOYEE <> 'BOAT' AND EMPLOYEE = '",V.Local.sTemp(1).Trim,"'",V.Local.sSQL)
+	F.ODBC.Connection!con.OpenRecordsetRO("rst",V.Local.sSQL)
+	F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,False)
+		F.Intrinsic.BDF.WriteRow("Clone",V.Local.sReadRow)
+	F.Intrinsic.Control.EndIf
+	F.ODBC.con!rst.Close
+F.Intrinsic.Control.Next(V.Local.i)
+F.Intrinsic.BDF.Save("Clone","AUX001")
+F.Intrinsic.Control.ExitSub
+
+Program.Sub.BDFLoad.End
+
+
